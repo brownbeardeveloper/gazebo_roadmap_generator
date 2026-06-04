@@ -8,6 +8,12 @@ class Cell():
 
     EMPTY_COLOR_BG = "white"
     EMPTY_COLOR_BORDER = "black"
+    COLORS = {
+        0: ("white", "black"),
+        1: ("dark blue", "dark blue"),
+        2: ("blue", "blue"),
+        3: ("gray45", "gray45"),
+    }
 
     def __init__(self, master, x, y, size):
         #Constructor of the object called by Cell
@@ -15,25 +21,13 @@ class Cell():
         self.abs = x
         self.ord = y
         self.size= size
-        self.fill= 0
-
-    def _switch(self):
-        #Switch the cell fill color
-        self.fill+=1
+        self.fill = 0
 
     def draw(self):
         #Fill selected cell on grid canvas
         if self.master != None :
 
-            if self.fill%3==1:
-                fill = "dark blue"
-                outline = "dark blue"
-            elif self.fill%3==2:
-                fill = "blue"
-                outline = "blue"
-            else:
-                fill = "white"
-                outline = "black"
+            fill, outline = Cell.COLORS.get(int(self.fill), Cell.COLORS[0])
 
             xmin = self.abs * self.size
             xmax = xmin + self.size
@@ -64,6 +58,7 @@ class CellGrid(Canvas):
         self.totalRows = rowNumber
         self.totalColumns = columnNumber
         self.CompleteGrid = np.zeros((rowNumber,columnNumber))
+        self.paintValue = 1
 
         self.grid = []
         for row in range(rowNumber):
@@ -113,8 +108,8 @@ class CellGrid(Canvas):
         if cell in self.switched:
             return
 
-        self.setRoad(row,column)
-        cell._switch()
+        self.setCell(row,column,self.paintValue)
+        cell.fill = self.paintValue
         cell.draw()
         #add the cell to the list of cell switched during the click
         self.switched.append(cell)
@@ -131,13 +126,11 @@ class CellGrid(Canvas):
         for row in self.CompleteGrid:
             print(" ".join(str(int(i)) for i in row))
 
-    def setRoad(self,row,col):
-        if self.CompleteGrid[row][col] == 1:
-            self.CompleteGrid[row][col] = 2
-        elif self.CompleteGrid[row][col] == 2:
-            self.CompleteGrid[row][col] = 0
-        else:
-            self.CompleteGrid[row][col] = 1
+    def setPaintValue(self, value):
+        self.paintValue = value
+
+    def setCell(self,row,col,value):
+        self.CompleteGrid[row][col] = value
 
 
 #if __name__ == "__main__" :
@@ -146,6 +139,12 @@ def OpenGrid(w):
 
     grid = CellGrid(app,w.rows,w.cols,25)
     grid.pack()
+    paint_frame = Frame(app)
+    paint_frame.pack()
+    Button(paint_frame,text="Road",command=lambda: grid.setPaintValue(1)).pack(side=LEFT)
+    Button(paint_frame,text="Intersection",command=lambda: grid.setPaintValue(2)).pack(side=LEFT)
+    Button(paint_frame,text="Wall",command=lambda: grid.setPaintValue(3)).pack(side=LEFT)
+    Button(paint_frame,text="Erase",command=lambda: grid.setPaintValue(0)).pack(side=LEFT)
     Button(app,text="Generate Roadmap",command=app.destroy).pack()
     app.mainloop()
     grid.printgrid()

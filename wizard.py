@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 from tkinter import *
 from grid import *
+from map_file import loadMap, savedGridFromMap
+import os
+import shutil
+import sys
 
 class worldSettings(object):
     def __init__(self):
@@ -40,6 +44,14 @@ class worldSettings(object):
         root.destroy()
 
 
+def launchGazebo():
+    if shutil.which("gazebo") is None:
+        print("Gazebo not found in PATH. Generated road.world.")
+        return
+
+    os.system("gazebo road.world")
+
+
 if __name__ == "__main__":
     #m = int(input("Enter number of rows: "))
     #n = int(input("Enter number of cols: "))
@@ -47,11 +59,14 @@ if __name__ == "__main__":
     items = os.listdir(os.path.expanduser("~/.gazebo/models/"))
     intersection_falg = 0
     straight_falg = 0
+    wall_falg = 0
     for item in items:
         if "road_intersection" == item:
             intersection_falg = 1
         if "road_straight" == item:
             straight_falg = 1
+        if "maps" == item:
+            wall_falg = 1
 
     if straight_falg == 0:
         os.system("cp -r road_straight ~/.gazebo/models/")
@@ -59,6 +74,24 @@ if __name__ == "__main__":
     if intersection_falg == 0:
         os.system("cp -r road_intersection ~/.gazebo/models/")
 
+    if wall_falg == 0:
+        os.system("cp -r maps ~/.gazebo/models/")
+
+
+    if len(sys.argv) > 1:
+        map_data = loadMap(sys.argv[1])
+        w = worldSettings()
+        w.rows = map_data["rows"]
+        w.cols = map_data["columns"]
+        w.time = map_data.get("time", w.time)
+        w.ambient = map_data.get("ambient", w.ambient)
+
+        grid = savedGridFromMap(map_data)
+        print(w.rows,w.cols,w.time,w.ambient)
+        grid.printgrid()
+        worldGenerator(grid,w)
+        launchGazebo()
+        sys.exit()
 
 
     rows = 0
@@ -115,4 +148,4 @@ if __name__ == "__main__":
     print(w.rows,w.cols,w.time,w.ambient)
 
     OpenGrid(w)
-    os.system("gazebo road.world")
+    launchGazebo()

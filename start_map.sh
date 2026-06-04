@@ -5,4 +5,4 @@ cd "$(dirname "$0")"
 
 mkdir -p "$HOME/.gazebo/models"
 uv sync
-uv run python wizard.py
+uv run python wizard.py "$@"
