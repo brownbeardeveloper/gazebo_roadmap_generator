@@ -1,0 +1,8 @@
+name: gazebo-venv
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - lxml
+  - numpy
+  - tk
