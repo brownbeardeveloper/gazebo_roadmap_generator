@@ -2,3 +2,5 @@
 *.world
 __pycache__/
 .venv/
+maps/model.config
+maps/model.sdf

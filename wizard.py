@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -14,7 +13,6 @@ from world_gen import DEFAULT_WORLD_PATH, worldGenerator
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-MODEL_DIRS = ("road_straight", "road_intersection", "maps")
 
 
 class WorldSettings:
@@ -61,11 +59,6 @@ def build_parser():
     parser.add_argument("--check", action="store_true", help="Generate and validate the world without launching Gazebo.")
     parser.add_argument("--no-launch", action="store_true", help="Generate only; do not launch Gazebo.")
     parser.add_argument("--verbose", action="store_true", help="Print the loaded grid before generating.")
-    parser.add_argument(
-        "--install-classic-models",
-        action="store_true",
-        help="Copy models into ~/.gazebo/models for Classic Gazebo compatibility.",
-    )
     return parser
 
 
@@ -77,16 +70,6 @@ def gazebo_env():
         resource_paths.append(existing_path)
     env["GZ_SIM_RESOURCE_PATH"] = os.pathsep.join(resource_paths)
     return env
-
-
-def install_classic_models():
-    model_root = Path.home() / ".gazebo" / "models"
-    model_root.mkdir(parents=True, exist_ok=True)
-    for model_dir in MODEL_DIRS:
-        source = PROJECT_ROOT / model_dir
-        target = model_root / model_dir
-        if not target.exists():
-            shutil.copytree(source, target)
 
 
 def validate_world(path):
@@ -209,9 +192,6 @@ def generate_from_gui(output_path):
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-
-    if args.install_classic_models:
-        install_classic_models()
 
     if args.map:
         world_path = generate_from_map(args.map, args.output, args.verbose)

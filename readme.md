@@ -4,9 +4,10 @@ Simple Python wizard for building Gazebo Sim road maps from a grid.
 
 ## Version 1.2
 
-- Added `maps`, a static wall model with collision geometry for LIDAR training.
+- Added generated `maps` wall block model support with collision geometry for LIDAR training.
 - Added drag-and-paint grid modes: Road, Intersection, Wall, and Erase.
-- Painted wall cells are exported into `road.world`.
+- Painted wall cells are merged into solid wall blocks in `road.world`.
+- The `maps` model directory is created automatically when missing.
 - Added a clean check mode for ROS 2 Jazzy / Gazebo Sim workflows.
 
 ## How It Works
@@ -16,7 +17,7 @@ Simple Python wizard for building Gazebo Sim road maps from a grid.
 3. Paint the grid.
 4. Generate the Gazebo world.
 
-The wizard writes `road.world` and launches it with `gz sim` when Gazebo Sim is available. Local models are resolved through `GZ_SIM_RESOURCE_PATH`, so copying into `~/.gazebo/models` is not needed for Jazzy.
+The wizard writes `road.world` and launches it with `gz sim` when Gazebo Sim is available. Local models are resolved through `GZ_SIM_RESOURCE_PATH`.
 
 ## Requirements
 
@@ -41,23 +42,17 @@ Run the generator:
 Use a saved map:
 
 ```bash
-./start_map.sh test.yaml
+./start_map.sh example.yaml
 ```
 
 Check generation without launching Gazebo:
 
 ```bash
-./start_map.sh test.yaml --check
+./start_map.sh example.yaml --check
 ```
 
 Generate only:
 
 ```bash
-./start_map.sh test.yaml --no-launch --output road.world
-```
-
-Classic Gazebo compatibility only:
-
-```bash
-./start_map.sh --install-classic-models
+./start_map.sh example.yaml --no-launch --output road.world
 ```
