@@ -1,2 +1,4 @@
 *.pyc
 *.world
+__pycache__/
+.venv/

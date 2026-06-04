@@ -80,9 +80,9 @@ class CellGrid(Canvas):
         #bind click action
         self.bind("<Button-1>", self.handleMouseClick)
         #bind moving while clicking
-        #   self.bind("<B1-Motion>", self.handleMouseMotion)
+        self.bind("<B1-Motion>", self.handleMouseMotion)
         #bind release button action - clear the memory of midified cells.
-        #self.bind("<ButtonRelease-1>", lambda event: self.switched.clear())
+        self.bind("<ButtonRelease-1>", lambda event: self.switched.clear())
         self.drawinitial()
 
 
@@ -102,24 +102,31 @@ class CellGrid(Canvas):
         column = int(event.x / self.cellSize)
         return row, column
 
-    def handleMouseClick(self, event):
-        row, column = self._eventCoords(event)
-        self.setRoad(row,column)
+    def _isInsideGrid(self, row, column):
+        return 0 <= row < self.totalRows and 0 <= column < self.totalColumns
+
+    def toggleCell(self, row, column):
+        if not self._isInsideGrid(row, column):
+            return
+
         cell = self.grid[row][column]
+        if cell in self.switched:
+            return
+
+        self.setRoad(row,column)
         cell._switch()
         cell.draw()
         #add the cell to the list of cell switched during the click
         self.switched.append(cell)
-    """
+
+    def handleMouseClick(self, event):
+        row, column = self._eventCoords(event)
+        self.toggleCell(row,column)
+
     def handleMouseMotion(self, event):
         row, column = self._eventCoords(event)
-        cell = self.grid[row][column]
+        self.toggleCell(row,column)
 
-        if cell not in self.switched:
-            cell._switch()
-            cell.draw()
-            self.switched.append(cell)
-    """
     def printgrid(self):
         for row in self.CompleteGrid:
             print(" ".join(str(int(i)) for i in row))
