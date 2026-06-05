@@ -79,6 +79,25 @@ def validate_world(path):
     if root_element.tag != "sdf":
         raise ValueError("Generated file is not an SDF document")
 
+    world = tree.find("world")
+    if world is None:
+        raise ValueError("Generated SDF does not contain a world")
+
+    models = world.findall("model")
+    lights = world.findall("light")
+    names = [
+        element.get("name")
+        for element in models + lights
+        if element.get("name")
+    ]
+    duplicate_names = sorted({name for name in names if names.count(name) > 1})
+    if duplicate_names:
+        raise ValueError(
+            "Generated world has duplicate entity names: {}".format(
+                ", ".join(duplicate_names)
+            )
+        )
+
     includes = tree.findall(".//include")
     model_names = {model_dir.name for model_dir in PROJECT_ROOT.iterdir() if model_dir.is_dir()}
     missing_models = sorted(
@@ -95,7 +114,11 @@ def validate_world(path):
     if missing_names:
         raise ValueError("Every include must have a unique name")
 
-    return len(includes)
+    return {
+        "includes": len(includes),
+        "models": len(models),
+        "lights": len(lights),
+    }
 
 
 def launch_gazebo(world_path):
@@ -199,8 +222,11 @@ def main(argv=None):
     else:
         world_path = generate_from_gui(args.output)
 
-    include_count = validate_world(world_path)
-    print(f"Generated {world_path} with {include_count} model includes.")
+    world_counts = validate_world(world_path)
+    print(
+        f"Generated {world_path} with {world_counts['models']} models, "
+        f"{world_counts['lights']} lights, and {world_counts['includes']} model includes."
+    )
 
     if args.check or args.no_launch:
         return 0
