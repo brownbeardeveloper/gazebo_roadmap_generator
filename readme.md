@@ -45,6 +45,14 @@ Use a saved map:
 ./start_map.sh example.yaml
 ```
 
+Run the playable example map with the car:
+
+```bash
+./play.sh
+```
+
+Keep the terminal focused and use the arrow keys to drive. Press `space` to stop and `q` to quit.
+
 Check generation without launching Gazebo:
 
 ```bash

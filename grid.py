@@ -58,7 +58,7 @@ class CellGrid(Canvas):
         self.totalRows = rowNumber
         self.totalColumns = columnNumber
         self.CompleteGrid = np.zeros((rowNumber,columnNumber))
-        self.paintValue = 1
+        self.paintValue = 0
 
         self.grid = []
         for row in range(rowNumber):
@@ -126,11 +126,37 @@ class CellGrid(Canvas):
         for row in self.CompleteGrid:
             print(" ".join(str(int(i)) for i in row))
 
+    def printSummary(self):
+        labels = {
+            0: "empty",
+            1: "road",
+            2: "intersection",
+            3: "wall",
+        }
+        counts = {
+            value: int(np.count_nonzero(self.CompleteGrid == value))
+            for value in labels
+        }
+        print(
+            "Cell counts: "
+            + ", ".join(
+                "{}={}".format(labels[value], counts[value])
+                for value in labels
+            )
+        )
+
     def setPaintValue(self, value):
         self.paintValue = value
 
     def setCell(self,row,col,value):
         self.CompleteGrid[row][col] = value
+
+    def clear(self):
+        self.CompleteGrid.fill(0)
+        for row in self.grid:
+            for cell in row:
+                cell.fill = 0
+                cell.draw()
 
 
 #if __name__ == "__main__" :
@@ -145,8 +171,10 @@ def OpenGrid(w):
     Button(paint_frame,text="Intersection",command=lambda: grid.setPaintValue(2)).pack(side=LEFT)
     Button(paint_frame,text="Wall",command=lambda: grid.setPaintValue(3)).pack(side=LEFT)
     Button(paint_frame,text="Erase",command=lambda: grid.setPaintValue(0)).pack(side=LEFT)
+    Button(paint_frame,text="Clear",command=grid.clear).pack(side=LEFT)
     Button(app,text="Generate Roadmap",command=app.destroy).pack()
     app.mainloop()
     grid.printgrid()
+    grid.printSummary()
 
     worldGenerator(grid,w)

@@ -15,6 +15,11 @@ ENTITY_PREFIX = "roadmap"
 SDF_VERSION = "1.10"
 DEFAULT_WORLD_PATH = "road.world"
 DEFAULT_MAPS_MODEL_DIR = Path(__file__).resolve().parent / "maps"
+GAZEBO_SIM_SYSTEMS = (
+    ("gz-sim-physics-system", "gz::sim::systems::Physics"),
+    ("gz-sim-user-commands-system", "gz::sim::systems::UserCommands"),
+    ("gz-sim-scene-broadcaster-system", "gz::sim::systems::SceneBroadcaster"),
+)
 
 
 def entity_name(name):
@@ -44,6 +49,11 @@ def include_model(world, model_name, pose):
     uri.text = model_uri
     pose_element = ET.SubElement(include, "pose")
     pose_element.text = " ".join(str(i) for i in pose)
+
+
+def add_gazebo_sim_systems(world):
+    for filename, name in GAZEBO_SIM_SYSTEMS:
+        ET.SubElement(world, "plugin", filename=filename, name=name)
 
 
 def ensure_maps_model(model_dir=DEFAULT_MAPS_MODEL_DIR):
@@ -279,6 +289,7 @@ def world_generator(grid, settings, output_path=DEFAULT_WORLD_PATH):
     sdf = ET.Element("sdf", version=SDF_VERSION)
 
     world = ET.SubElement(sdf, "world", name="road_test")
+    add_gazebo_sim_systems(world)
 
     scene = ET.SubElement(world, "scene")
 
