@@ -96,6 +96,26 @@
           <diffuse>0.02 0.02 0.02 1</diffuse>
         </material>
       </visual>
+      <sensor name="front_camera" type="camera">
+        <pose>0.31 0 0.08 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>20</update_rate>
+        <visualize>true</visualize>
+        <topic>/model/roadmap_car/front_camera/image</topic>
+        <camera>
+          <camera_info_topic>/model/roadmap_car/front_camera/camera_info</camera_info_topic>
+          <horizontal_fov>1.3962634</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>50</far>
+          </clip>
+        </camera>
+      </sensor>
     </link>
 
     <link name="left_wheel">

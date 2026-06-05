@@ -8,7 +8,10 @@ MAP_FILE="${1:-example.yaml}"
 WORLD_FILE="${2:-road_play.world}"
 CAR_FILE="${CAR_FILE:-sources/car.sdf}"
 CMD_TOPIC="${CMD_TOPIC:-/cmd_vel}"
+CAMERA_IMAGE_TOPIC="${CAMERA_IMAGE_TOPIC:-/model/roadmap_car/front_camera/image}"
+CAMERA_INFO_TOPIC="${CAMERA_INFO_TOPIC:-/model/roadmap_car/front_camera/camera_info}"
 STARTUP_DELAY="${GAZEBO_STARTUP_DELAY:-3}"
+ROS_BRIDGE="${ROS_BRIDGE:-auto}"
 
 if ! command -v micromamba >/dev/null 2>&1; then
     echo "micromamba not found in PATH. Install micromamba or create the Python environment manually."
@@ -31,6 +34,30 @@ fi
 
 PYTHON=(micromamba run -n "$ENV_NAME" python)
 
+start_ros_bridge() {
+    if [[ "$ROS_BRIDGE" == "off" ]]; then
+        return
+    fi
+
+    if ! command -v ros2 >/dev/null 2>&1; then
+        echo "ROS 2 not found in PATH; driving with Gazebo Transport only."
+        return
+    fi
+
+    if ! ros2 pkg prefix ros_gz_bridge >/dev/null 2>&1; then
+        echo "ros_gz_bridge not found; /cmd_vel will not appear in ros2 topic list."
+        echo "Install it in the VM, for example: sudo apt install ros-\$ROS_DISTRO-ros-gz-bridge"
+        return
+    fi
+
+    echo "Starting ROS 2 bridge for $CMD_TOPIC and camera topics..."
+    ros2 run ros_gz_bridge parameter_bridge \
+        "$CMD_TOPIC@geometry_msgs/msg/Twist@gz.msgs.Twist" \
+        "$CAMERA_IMAGE_TOPIC@sensor_msgs/msg/Image@gz.msgs.Image" \
+        "$CAMERA_INFO_TOPIC@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo" &
+    BRIDGE_PID=$!
+}
+
 echo "Building playable world: map=$MAP_FILE car=$CAR_FILE output=$WORLD_FILE"
 "${PYTHON[@]}" scripts/build_play_world.py --map "$MAP_FILE" --car "$CAR_FILE" --output "$WORLD_FILE"
 
@@ -38,6 +65,10 @@ export GZ_SIM_RESOURCE_PATH="$PWD${GZ_SIM_RESOURCE_PATH:+:$GZ_SIM_RESOURCE_PATH}
 
 cleanup() {
     gz topic -t "$CMD_TOPIC" -m gz.msgs.Twist -p "linear { x: 0 } angular { z: 0 }" >/dev/null 2>&1 || true
+    if [[ -n "${BRIDGE_PID:-}" ]]; then
+        kill "$BRIDGE_PID" >/dev/null 2>&1 || true
+        wait "$BRIDGE_PID" >/dev/null 2>&1 || true
+    fi
     if [[ -n "${GZ_PID:-}" ]]; then
         kill "$GZ_PID" >/dev/null 2>&1 || true
         wait "$GZ_PID" >/dev/null 2>&1 || true
@@ -50,6 +81,7 @@ gz sim "$WORLD_FILE" &
 GZ_PID=$!
 
 sleep "$STARTUP_DELAY"
+start_ros_bridge
 
 echo "Drive from this terminal with arrow keys. Press q to quit."
 "${PYTHON[@]}" scripts/keyboard_drive.py --topic "$CMD_TOPIC"

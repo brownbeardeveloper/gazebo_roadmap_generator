@@ -18,6 +18,7 @@ DEFAULT_MAPS_MODEL_DIR = Path(__file__).resolve().parent / "maps"
 GAZEBO_SIM_SYSTEMS = (
     ("gz-sim-physics-system", "gz::sim::systems::Physics"),
     ("gz-sim-user-commands-system", "gz::sim::systems::UserCommands"),
+    ("gz-sim-sensors-system", "gz::sim::systems::Sensors"),
     ("gz-sim-scene-broadcaster-system", "gz::sim::systems::SceneBroadcaster"),
 )
 
@@ -53,7 +54,10 @@ def include_model(world, model_name, pose):
 
 def add_gazebo_sim_systems(world):
     for filename, name in GAZEBO_SIM_SYSTEMS:
-        ET.SubElement(world, "plugin", filename=filename, name=name)
+        plugin = ET.SubElement(world, "plugin", filename=filename, name=name)
+        if name == "gz::sim::systems::Sensors":
+            render_engine = ET.SubElement(plugin, "render_engine")
+            render_engine.text = "ogre2"
 
 
 def ensure_maps_model(model_dir=DEFAULT_MAPS_MODEL_DIR):

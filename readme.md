@@ -53,6 +53,14 @@ Run the playable example map with the car:
 
 Keep the terminal focused and use the arrow keys to drive. Press `space` to stop and `q` to quit.
 
+The keyboard driver publishes to Gazebo Transport on `/cmd_vel`, so `gz topic -l`
+is the direct way to inspect it. If ROS 2 and `ros_gz_bridge` are sourced,
+`play.sh` also starts a bridge so `/cmd_vel` appears in `ros2 topic list`.
+The car camera publishes on `/model/roadmap_car/front_camera/image` and
+`/model/roadmap_car/front_camera/camera_info`.
+Check it directly with `gz topic -l | grep front_camera`, or view the bridged
+ROS image with `rqt_image_view` when that package is installed.
+
 Check generation without launching Gazebo:
 
 ```bash
