@@ -33,6 +33,13 @@ if ! command -v gz >/dev/null 2>&1; then
 fi
 
 PYTHON=(micromamba run -n "$ENV_NAME" python)
+DRIVE_PYTHON=("${PYTHON[@]}")
+DRIVE_TRANSPORT="gz"
+
+if command -v python3 >/dev/null 2>&1 && python3 -c "import rclpy, geometry_msgs.msg" >/dev/null 2>&1; then
+    DRIVE_PYTHON=(python3)
+    DRIVE_TRANSPORT="ros2"
+fi
 
 start_ros_bridge() {
     if [[ "$ROS_BRIDGE" == "off" ]]; then
@@ -77,11 +84,11 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "Starting Gazebo Sim..."
-gz sim "$WORLD_FILE" &
+gz sim -r "$WORLD_FILE" &
 GZ_PID=$!
 
 sleep "$STARTUP_DELAY"
 start_ros_bridge
 
 echo "Drive from this terminal with arrow keys. Press q to quit."
-"${PYTHON[@]}" scripts/keyboard_drive.py --topic "$CMD_TOPIC"
+"${DRIVE_PYTHON[@]}" scripts/keyboard_drive.py --topic "$CMD_TOPIC" --transport "$DRIVE_TRANSPORT"

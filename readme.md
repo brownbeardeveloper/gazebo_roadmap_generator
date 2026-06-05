@@ -48,10 +48,14 @@ Use a saved map:
 Run the playable example map with the car:
 
 ```bash
+source /opt/ros/$ROS_DISTRO/setup.bash
 ./play.sh
 ```
 
 Keep the terminal focused and use the arrow keys to drive. Press `space` to stop and `q` to quit.
+`play.sh` starts Gazebo running; if the camera looks frozen, click the orange play button in Gazebo.
+When ROS 2 is sourced, the keyboard driver publishes `/cmd_vel` through
+`ros_gz_bridge` at 20 Hz.
 
 The keyboard driver publishes to Gazebo Transport on `/cmd_vel`, so `gz topic -l`
 is the direct way to inspect it. If ROS 2 and `ros_gz_bridge` are sourced,
