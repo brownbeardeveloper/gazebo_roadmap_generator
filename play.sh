@@ -13,6 +13,7 @@ CAMERA_INFO_TOPIC="${CAMERA_INFO_TOPIC:-/model/roadmap_car/front_camera/camera_i
 STARTUP_DELAY="${GAZEBO_STARTUP_DELAY:-3}"
 ROS_BRIDGE="${ROS_BRIDGE:-auto}"
 BRIDGE_CONFIG="${BRIDGE_CONFIG:-config/ros_gz_bridge.yaml}"
+KEYBOARD_DRIVE="${KEYBOARD_DRIVE:-on}"
 
 if ! command -v micromamba >/dev/null 2>&1; then
     echo "micromamba not found in PATH. Install micromamba or create the Python environment manually."
@@ -87,6 +88,12 @@ GZ_PID=$!
 
 sleep "$STARTUP_DELAY"
 start_ros_bridge
+
+if [[ "$KEYBOARD_DRIVE" == "off" ]]; then
+    echo "Keyboard drive disabled. Gazebo and bridge are running; press Ctrl+C here to stop them."
+    wait "$GZ_PID"
+    exit 0
+fi
 
 echo "Drive from this terminal with arrow keys. Press q to quit."
 "${DRIVE_PYTHON[@]}" scripts/keyboard_drive.py --topic "$CMD_TOPIC" --transport "$DRIVE_TRANSPORT"

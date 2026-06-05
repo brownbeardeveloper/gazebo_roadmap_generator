@@ -52,6 +52,15 @@ source /opt/ros/$ROS_DISTRO/setup.bash
 ./play.sh
 ```
 
+Run the tmux movement test:
+
+```bash
+./test_drive_tmux.sh
+```
+
+It starts Gazebo + bridge without keyboard drive, watches odometry, and gives
+you a pane where pressing Enter publishes forward `/cmd_vel`.
+
 Keep the terminal focused and use the arrow keys to drive. Press `space` to stop and `q` to quit.
 `play.sh` starts Gazebo running; if the camera looks frozen, click the orange play button in Gazebo.
 When ROS 2 is sourced, the keyboard driver publishes `/cmd_vel` through
