@@ -3,8 +3,10 @@ from pathlib import Path
 
 from lxml import etree as ET
 
-TILE_SIZE = 10
-WALL_HEIGHT = 1.0
+# Gazebo uses SI units. A 1 m grid cell keeps maps compact for a
+# 0.60 m x 0.30 m RC car while leaving realistic driving clearance.
+TILE_SIZE = 1.0
+WALL_HEIGHT = 0.4
 WALL_OFFSET = TILE_SIZE / 2
 WALL_CELL = 3
 WALL_COLOR = "0.65 0.65 0.65 1"

@@ -19,6 +19,13 @@ Simple Python wizard for building Gazebo Sim road maps from a grid.
 
 The wizard writes `road.world` and launches it with `gz sim` when Gazebo Sim is available. Local models are resolved through `GZ_SIM_RESOURCE_PATH`.
 
+## Map Scale
+
+Gazebo geometry is generated in meters. Each grid cell is a `1.0 m x 1.0 m`
+road tile, and generated wall blocks are `0.4 m` high. This keeps maps compact
+for a `0.60 m x 0.30 m x 0.20 m` RC car while leaving practical driving
+clearance and avoiding very small simulation geometry.
+
 ## Requirements
 
 - Python 3.10+
