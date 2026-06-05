@@ -9,6 +9,7 @@ TILE_SIZE = 1.0
 WALL_HEIGHT = 0.4
 WALL_OFFSET = TILE_SIZE / 2
 WALL_CELL = 3
+ROAD_FRICTION = 75
 WALL_COLOR = "0.65 0.65 0.65 1"
 SDF_VERSION = "1.10"
 DEFAULT_WORLD_PATH = "road.world"
@@ -114,6 +115,56 @@ def add_box_model(world, name_prefix, pose, size, color=WALL_COLOR):
             diffuse.text = color
             specular = ET.SubElement(material, "specular")
             specular.text = "0.05 0.05 0.05 1"
+
+
+def add_road_tile(world, model_name, pose):
+    instance_count = sum(
+        1 for model in world.findall("model")
+        if model.get("name", "").startswith("{}_".format(model_name))
+    )
+
+    model = ET.SubElement(world, "model", name="{}_{}".format(model_name, instance_count))
+    static = ET.SubElement(model, "static")
+    static.text = "true"
+    pose_element = ET.SubElement(model, "pose")
+    pose_element.text = " ".join(str(i) for i in pose)
+
+    link = ET.SubElement(model, "link", name="link")
+
+    collision = ET.SubElement(link, "collision", name="collision")
+    collision_geometry = ET.SubElement(collision, "geometry")
+    collision_plane = ET.SubElement(collision_geometry, "plane")
+    collision_normal = ET.SubElement(collision_plane, "normal")
+    collision_normal.text = "0 0 1"
+    collision_size = ET.SubElement(collision_plane, "size")
+    collision_size.text = "{} {}".format(TILE_SIZE, TILE_SIZE)
+
+    surface = ET.SubElement(collision, "surface")
+    friction = ET.SubElement(surface, "friction")
+    ode = ET.SubElement(friction, "ode")
+    mu = ET.SubElement(ode, "mu")
+    mu.text = str(ROAD_FRICTION)
+    mu2 = ET.SubElement(ode, "mu2")
+    mu2.text = str(ROAD_FRICTION)
+
+    visual = ET.SubElement(link, "visual", name="visual")
+    cast_shadows = ET.SubElement(visual, "cast_shadows")
+    cast_shadows.text = "false"
+    visual_geometry = ET.SubElement(visual, "geometry")
+    visual_plane = ET.SubElement(visual_geometry, "plane")
+    visual_normal = ET.SubElement(visual_plane, "normal")
+    visual_normal.text = "0 0 1"
+    visual_size = ET.SubElement(visual_plane, "size")
+    visual_size.text = "{} {}".format(TILE_SIZE, TILE_SIZE)
+
+    material = ET.SubElement(visual, "material")
+    script = ET.SubElement(material, "script")
+    script_uri = ET.SubElement(script, "uri")
+    script_uri.text = "model://{}/materials/scripts".format(model_name)
+    texture_uri = ET.SubElement(script, "uri")
+    texture_uri.text = "model://{}/materials/textures".format(model_name)
+    script_name = ET.SubElement(script, "name")
+    script_name.text = "{}/Image".format(model_name)
 
 
 def add_wall_block(world, center_x, center_y, size_x, size_y):
@@ -254,11 +305,11 @@ def world_generator(grid, settings, output_path=DEFAULT_WORLD_PATH):
             cell = grid.CompleteGrid[row][column]
             if cell == 1:
                 pos[5] = road_yaw(grid, row, column)
-                include_model(world, "road_straight", pos)
+                add_road_tile(world, "road_straight", pos)
 
             elif cell == 2:
                 pos[5] = 1.57
-                include_model(world, "road_intersection", pos)
+                add_road_tile(world, "road_intersection", pos)
 
             pos[1] += TILE_SIZE
         pos[0] += TILE_SIZE
