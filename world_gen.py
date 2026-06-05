@@ -11,9 +11,23 @@ WALL_OFFSET = TILE_SIZE / 2
 WALL_CELL = 3
 ROAD_FRICTION = 75
 WALL_COLOR = "0.65 0.65 0.65 1"
+ENTITY_PREFIX = "roadmap"
 SDF_VERSION = "1.10"
 DEFAULT_WORLD_PATH = "road.world"
 DEFAULT_MAPS_MODEL_DIR = Path(__file__).resolve().parent / "maps"
+
+
+def entity_name(name):
+    return "{}_{}".format(ENTITY_PREFIX, name)
+
+
+def next_model_name(world, name_prefix):
+    prefixed_name = entity_name(name_prefix)
+    instance_count = sum(
+        1 for model in world.findall("model")
+        if model.get("name", "").startswith("{}_".format(prefixed_name))
+    )
+    return "{}_{}".format(prefixed_name, instance_count)
 
 
 def include_model(world, model_name, pose):
@@ -85,12 +99,7 @@ def ensure_maps_model(model_dir=DEFAULT_MAPS_MODEL_DIR):
 
 
 def add_box_model(world, name_prefix, pose, size, color=WALL_COLOR):
-    instance_count = sum(
-        1 for model in world.findall("model")
-        if model.get("name", "").startswith("{}_".format(name_prefix))
-    )
-
-    model = ET.SubElement(world, "model", name="{}_{}".format(name_prefix, instance_count))
+    model = ET.SubElement(world, "model", name=next_model_name(world, name_prefix))
     static = ET.SubElement(model, "static")
     static.text = "true"
     pose_element = ET.SubElement(model, "pose")
@@ -118,12 +127,7 @@ def add_box_model(world, name_prefix, pose, size, color=WALL_COLOR):
 
 
 def add_road_tile(world, model_name, pose):
-    instance_count = sum(
-        1 for model in world.findall("model")
-        if model.get("name", "").startswith("{}_".format(model_name))
-    )
-
-    model = ET.SubElement(world, "model", name="{}_{}".format(model_name, instance_count))
+    model = ET.SubElement(world, "model", name=next_model_name(world, model_name))
     static = ET.SubElement(model, "static")
     static.text = "true"
     pose_element = ET.SubElement(model, "pose")
@@ -247,7 +251,7 @@ def road_yaw(grid, row, column):
 
 
 def add_sun_light(world):
-    light = ET.SubElement(world, "light", name="sun", type="directional")
+    light = ET.SubElement(world, "light", name=entity_name("sun"), type="directional")
     cast_shadows = ET.SubElement(light, "cast_shadows")
     cast_shadows.text = "true"
     pose = ET.SubElement(light, "pose")
@@ -272,8 +276,6 @@ def add_sun_light(world):
 
 
 def world_generator(grid, settings, output_path=DEFAULT_WORLD_PATH):
-    ensure_maps_model()
-
     sdf = ET.Element("sdf", version=SDF_VERSION)
 
     world = ET.SubElement(sdf, "world", name="road_test")
