@@ -12,6 +12,7 @@ CAMERA_IMAGE_TOPIC="${CAMERA_IMAGE_TOPIC:-/model/roadmap_car/front_camera/image}
 CAMERA_INFO_TOPIC="${CAMERA_INFO_TOPIC:-/model/roadmap_car/front_camera/camera_info}"
 STARTUP_DELAY="${GAZEBO_STARTUP_DELAY:-3}"
 ROS_BRIDGE="${ROS_BRIDGE:-auto}"
+BRIDGE_CONFIG="${BRIDGE_CONFIG:-config/ros_gz_bridge.yaml}"
 
 if ! command -v micromamba >/dev/null 2>&1; then
     echo "micromamba not found in PATH. Install micromamba or create the Python environment manually."
@@ -57,11 +58,8 @@ start_ros_bridge() {
         return
     fi
 
-    echo "Starting ROS 2 bridge for $CMD_TOPIC and camera topics..."
-    ros2 run ros_gz_bridge parameter_bridge \
-        "$CMD_TOPIC@geometry_msgs/msg/Twist@gz.msgs.Twist" \
-        "$CAMERA_IMAGE_TOPIC@sensor_msgs/msg/Image@gz.msgs.Image" \
-        "$CAMERA_INFO_TOPIC@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo" &
+    echo "Starting ROS 2 bridge from $BRIDGE_CONFIG..."
+    ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:="$BRIDGE_CONFIG" &
     BRIDGE_PID=$!
 }
 
